@@ -67,9 +67,34 @@ export async function fetchLotteryData(
       return { success: false, message: "The database is empty." };
     }
 
-    // Attempt to map or just pass the objects.
-    // If objects are complex, we might want to just keep them as is and let the client figure it out.
-    return { success: true, data: dataList, message: "Data fetched successfully!" };
+    // Deduplicate data before returning to eliminate multiple entries from the same phone number
+    const uniqueDataList = [];
+    const phoneSet = new Set<string>();
+
+    for (const item of dataList) {
+      if (!item) continue;
+      
+      const phone = item.phone || item.phoneNumber || item.mobile || item.contact || item.contactNumber || item.mobileNumber || item.phone_number;
+      
+      if (phone) {
+        const phoneStr = String(phone).trim();
+        // Remove non-digit characters for a robust check (e.g., matching '+880' vs '0880' vs '0')
+        // We will just remove dashes and spaces to match variations like "017 123" and "017123"
+        // Better yet, remove all non-digits:
+        const digitsOnly = phoneStr.replace(/\D/g, "");
+        const phoneKey = digitsOnly.length > 5 ? digitsOnly : phoneStr.toLowerCase();
+
+        if (!phoneSet.has(phoneKey)) {
+          phoneSet.add(phoneKey);
+          uniqueDataList.push(item);
+        }
+      } else {
+        // If no recognizable phone number is found, include the item anyway
+        uniqueDataList.push(item);
+      }
+    }
+
+    return { success: true, data: uniqueDataList, message: "Data fetched successfully!" };
 
   } catch (error) {
     console.error("Fetch Error:", error);
