@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, Loader2, Sparkles, MapPin, History, RefreshCw, Download } from "lucide-react";
+import { Trophy, Loader2, Sparkles, MapPin, History, RefreshCw, Download, Moon, Star } from "lucide-react";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -43,6 +43,19 @@ export function LotteryApp() {
   const [activeToken, setActiveToken] = useState("");
   const [tempToken, setTempToken] = useState("");
   const [tickerName, setTickerName] = useState("");
+  const [bgStars, setBgStars] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Generate star positions only on client to avoid hydration mismatch
+    const generated = Array.from({ length: 40 }).map(() => ({
+      size: Math.random() * 3 + 1,
+      left: Math.random() * 100,
+      duration: Math.random() * 20 + 10,
+      delay: -(Math.random() * 30),
+      opacity: Math.random() * 0.5 + 0.1
+    }));
+    setBgStars(generated);
+  }, []);
 
   const availableData = lotteryData.filter((item) => {
      return !prizeHistory.some(w => 
@@ -255,11 +268,109 @@ export function LotteryApp() {
   const radius = 190;
 
   return (
-    <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-4 py-8 text-white relative overflow-hidden">
-      {/* Background Decor */}
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 py-8 text-white relative overflow-hidden bg-[#040813]">
+      {/* Eid Vibe Background Decor */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/20 rounded-full blur-[100px]"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-pink-900/20 rounded-full blur-[100px]"></div>
+        {/* Soft radial gradients for a magical night sky feel */}
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-900/30 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-sky-900/20 rounded-full blur-[120px]"></div>
+        
+        {/* Giant subtle crescent moon */}
+        <div className="absolute top-[5%] right-[5%] opacity-40 rotate-12 text-blue-400 drop-shadow-[0_0_20px_rgba(59,130,246,0.6)]">
+           <Moon className="w-80 h-80" strokeWidth={0.5} fill="currentColor" />
+        </div>
+
+        {/* Moving Stars Background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none -z-20">
+          {bgStars.map((s, i) => (
+            <motion.div
+              key={i}
+              className="absolute bg-white rounded-full"
+              style={{
+                width: s.size + 'px',
+                height: s.size + 'px',
+                left: s.left + '%',
+                top: '-5%',
+                opacity: s.opacity + 0.3 // Increased opacity here
+              }}
+              animate={{
+                y: ['0vh', '110vh']
+              }}
+              transition={{
+                duration: s.duration,
+                repeat: Infinity,
+                ease: "linear",
+                delay: s.delay
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Floating Abstract Stars */}
+        <div className="absolute top-[18%] left-[12%] animate-pulse" style={{ animationDuration: '3s' }}>
+          <Star className="w-10 h-10 text-cyan-300/80 drop-shadow-[0_0_10px_rgba(6,182,212,0.8)]" fill="currentColor" />
+        </div>
+        <div className="absolute top-[65%] right-[8%] animate-pulse" style={{ animationDuration: '4.5s' }}>
+          <Star className="w-16 h-16 text-blue-300/70 drop-shadow-[0_0_15px_rgba(59,130,246,0.8)]" fill="currentColor" />
+        </div>
+        <div className="absolute bottom-[12%] left-[25%] animate-pulse" style={{ animationDuration: '5s' }}>
+          <Star className="w-8 h-8 text-sky-300/90 drop-shadow-[0_0_10px_rgba(56,189,248,0.8)]" fill="currentColor" />
+        </div>
+
+        {/* Glowing sparkles */}
+        <Sparkles className="absolute top-[30%] right-[25%] w-8 h-8 text-cyan-300/80 animate-pulse drop-shadow-[0_0_8px_rgba(6,182,212,0.6)]" style={{ animationDuration: '4s', animationDelay: '1s' }} />
+        <Sparkles className="absolute bottom-[42%] left-[15%] w-6 h-6 text-blue-300/90 animate-pulse drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]" style={{ animationDuration: '3s', animationDelay: '2s' }} />
+
+        {/* Faded Giant Festival Characters */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[12vw] font-black text-blue-300 opacity-[0.08] select-none pointer-events-none tracking-[0.2em] whitespace-nowrap mix-blend-screen drop-shadow-[0_0_30px_rgba(59,130,246,0.3)]">
+          EID MUBARAK
+        </div>
+
+        {/* Swinging Lantern Left */}
+        <motion.div 
+          className="absolute top-[-10px] left-[15%] hidden md:flex flex-col items-center opacity-95 drop-shadow-[0_0_20px_rgba(6,182,212,1)] pointer-events-none z-10"
+          animate={{ rotate: [-6, 6, -6] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+          style={{ transformOrigin: "top center" }}
+        >
+          <div className="w-0.5 h-24 bg-gradient-to-b from-transparent to-cyan-400"></div>
+          <div className="w-6 h-4 bg-cyan-700 rounded-t-xl border border-cyan-300 z-10"></div>
+          <div className="w-10 h-16 bg-blue-900/80 border-2 border-cyan-400 rounded-md relative flex justify-center items-center backdrop-blur-md">
+             <div className="w-2.5 h-4 bg-yellow-300 rounded-full animate-pulse shadow-[0_0_15px_rgba(253,224,71,1)]"></div>
+          </div>
+          <div className="w-6 h-4 bg-cyan-700 rounded-b-xl border border-cyan-300 z-10"></div>
+          <div className="w-0.5 h-8 bg-cyan-400 mt-1"></div>
+        </motion.div>
+
+        {/* Swinging Lantern Right */}
+        <motion.div 
+          className="absolute top-[-10px] right-[10%] hidden lg:flex flex-col items-center opacity-90 drop-shadow-[0_0_20px_rgba(6,182,212,1)] pointer-events-none z-10"
+          animate={{ rotate: [5, -5, 5] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          style={{ transformOrigin: "top center" }}
+        >
+          <div className="w-0.5 h-32 bg-gradient-to-b from-transparent to-cyan-400"></div>
+          <div className="w-8 h-5 bg-cyan-800 rounded-t-xl border border-cyan-300 z-10"></div>
+          <div className="w-12 h-20 bg-blue-900/80 border-2 border-cyan-400 rounded-md relative flex justify-center items-center backdrop-blur-md">
+             <div className="w-3 h-5 bg-yellow-300 rounded-full animate-pulse shadow-[0_0_15px_rgba(253,224,71,1)]"></div>
+          </div>
+          <div className="w-8 h-5 bg-cyan-800 rounded-b-xl border border-cyan-300 z-10"></div>
+          <div className="w-0.5 h-10 bg-cyan-400 mt-1"></div>
+        </motion.div>
+
+        {/* Mosque Silhouette at bottom */}
+        <div className="absolute bottom-[-10px] left-0 w-full flex justify-center items-end opacity-20 pointer-events-none mix-blend-screen overflow-hidden">
+           <div className="w-full max-w-7xl flex items-end justify-center drop-shadow-[0_0_25px_rgba(59,130,246,0.6)]">
+              {/* Simple geometric mosque shapes */}
+              <div className="w-16 h-32 bg-cyan-200 rounded-t-full mx-1 translate-y-4"></div>
+              <div className="w-8 h-64 bg-blue-100 rounded-t-full mx-1"></div>
+              <div className="w-24 h-48 bg-cyan-100 rounded-t-full mx-1 flex justify-center translate-y-2"></div>
+              <div className="w-48 h-56 bg-sky-100 rounded-t-[100px] mx-1 relative"></div>
+              <div className="w-24 h-48 bg-cyan-100 rounded-t-full mx-1 flex justify-center translate-y-2"></div>
+              <div className="w-8 h-64 bg-blue-100 rounded-t-full mx-1"></div>
+              <div className="w-16 h-32 bg-cyan-200 rounded-t-full mx-1 translate-y-4"></div>
+           </div>
+        </div>
       </div>
 
       <motion.div 
@@ -272,7 +383,7 @@ export function LotteryApp() {
             <Card className="border-neutral-800 bg-neutral-900/50 backdrop-blur-xl shadow-2xl">
               <CardHeader className="text-center">
                 <CardTitle className="text-3xl font-extrabold text-white flex items-center justify-center gap-2">
-                  <Sparkles className="text-pink-500" />
+                  <Sparkles className="text-blue-400" />
                   Eid Card Lottery
                 </CardTitle>
                 <CardDescription className="text-neutral-400">
@@ -295,7 +406,7 @@ export function LotteryApp() {
                       value={tempToken}
                       onChange={(e) => setTempToken(e.target.value)}
                       required
-                      className="border-neutral-700 bg-neutral-950 text-white focus-visible:ring-pink-500"
+                      className="border-neutral-700 bg-neutral-950 text-white focus-visible:ring-blue-500"
                     />
                     {state?.errors?.token && (
                       <p className="text-sm text-red-500 font-medium">
@@ -313,7 +424,7 @@ export function LotteryApp() {
                   <Button 
                     type="submit" 
                     disabled={isPending}
-                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-6 text-lg transition-all shadow-[0_0_20px_rgba(219,39,119,0.3)] hover:shadow-[0_0_30px_rgba(219,39,119,0.5)]"
+                    className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold py-6 text-lg transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.5)]"
                   >
                     {isPending ? (
                       <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading Data</>
@@ -334,7 +445,7 @@ export function LotteryApp() {
                  animate={{ scale: 1, opacity: 1 }}
                  className="text-center mb-8"
               >
-                <h1 className="text-4xl lg:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500 mb-2 drop-shadow-sm text-center">
+                <h1 className="text-4xl lg:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500 mb-2 drop-shadow-sm text-center">
                   Phitron Wheel of Salami
                 </h1>
                 <p className="text-neutral-400 text-lg">
@@ -345,7 +456,7 @@ export function LotteryApp() {
               {/* FAST TICKER - Shows random names rapidly while spinning to build suspense */}
               <div className="h-16 mb-6 flex flex-col items-center justify-center w-full max-w-sm rounded-2xl bg-neutral-950/80 border border-neutral-800 shadow-[inset_0_2px_15px_rgba(0,0,0,0.8)] overflow-hidden relative">
                 {isSpinning && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-pink-500/10 to-transparent animate-pulse pointer-events-none"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/10 to-transparent animate-pulse pointer-events-none"></div>
                 )}
                 
                 {isSpinning ? (
@@ -354,7 +465,7 @@ export function LotteryApp() {
                   </span>
                 ) : (
                   <span className="text-sm border border-neutral-800 text-neutral-400 uppercase tracking-widest font-semibold flex items-center gap-2 bg-neutral-900 px-5 py-2 rounded-full shadow-sm">
-                    <Sparkles className="w-4 h-4 text-pink-500" /> Ready to Roll
+                    <Sparkles className="w-4 h-4 text-cyan-400" /> Ready to Roll
                   </span>
                 )}
               </div>
@@ -362,7 +473,7 @@ export function LotteryApp() {
               {/* WHEEL CONTAINER */}
               <div className="relative w-full max-w-[400px] aspect-square flex items-center justify-center mb-10 overflow-visible">
                 {/* Outer Glow & Border */}
-                <div className="absolute inset-0 rounded-full border-8 border-neutral-800 shadow-[0_0_50px_rgba(219,39,119,0.15)] bg-neutral-950 z-0"></div>
+                <div className="absolute inset-0 rounded-full border-8 border-neutral-800 shadow-[0_0_50px_rgba(59,130,246,0.15)] bg-neutral-950 z-0"></div>
                 
                 {/* Sharp SVG Pointer / Marker (Top) */}
                 <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-30 drop-shadow-[0_6px_10px_rgba(0,0,0,0.8)]">
@@ -370,7 +481,7 @@ export function LotteryApp() {
                     {/* Main sharp triangle pointer */}
                     <path d="M22 58L4 4H40L22 58Z" fill="url(#pointerGradient)" stroke="#27272a" strokeWidth="2" strokeLinejoin="round"/>
                     {/* Inner glowing dot */}
-                    <circle cx="22" cy="16" r="6" fill="#f43f5e" stroke="#fff" strokeWidth="2" />
+                    <circle cx="22" cy="16" r="6" fill="#0ea5e9" stroke="#fff" strokeWidth="2" />
                     <defs>
                       <linearGradient id="pointerGradient" x1="22" y1="0" x2="22" y2="60" gradientUnits="userSpaceOnUse">
                         <stop stopColor="#ffffff" />
@@ -441,7 +552,7 @@ export function LotteryApp() {
               <Button
                 onClick={startSpin}
                 disabled={isSpinning || availableData.length === 0}
-                className="w-full max-w-sm py-8 text-2xl font-black rounded-2xl bg-gradient-to-r from-yellow-500 via-orange-500 to-pink-600 hover:scale-[1.02] transition-transform text-white shadow-[0_0_30px_rgba(239,68,68,0.3)] disabled:opacity-50 disabled:hover:scale-100 border-2 border-yellow-400/30 uppercase tracking-widest"
+                className="w-full max-w-sm py-8 text-2xl font-black rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 hover:scale-[1.02] transition-transform text-white shadow-[0_0_30px_rgba(59,130,246,0.3)] disabled:opacity-50 disabled:hover:scale-100 border-2 border-cyan-400/30 uppercase tracking-widest"
               >
                 {isSpinning ? "Spinning..." : availableData.length === 0 ? "No Participants Left" : "Tap to Spin!"}
               </Button>
@@ -492,10 +603,10 @@ export function LotteryApp() {
                     exit={{ scale: 0.8, opacity: 0 }}
                     className="w-full"
                   >
-                    <Card className="border-yellow-500/50 bg-gradient-to-br from-yellow-900/40 to-amber-950/40 backdrop-blur-md shadow-[0_0_40px_rgba(234,179,8,0.15)] relative overflow-hidden">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/20 rounded-full blur-3xl"></div>
+                    <Card className="border-cyan-500/50 bg-gradient-to-br from-blue-900/40 to-sky-950/40 backdrop-blur-md shadow-[0_0_40px_rgba(6,182,212,0.15)] relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/20 rounded-full blur-3xl"></div>
                       <CardHeader className="pb-2 text-center">
-                        <CardTitle className="text-xl text-yellow-500 flex justify-center items-center gap-2 uppercase tracking-widest font-bold">
+                        <CardTitle className="text-xl text-cyan-400 flex justify-center items-center gap-2 uppercase tracking-widest font-bold">
                           <Trophy className="w-6 h-6 animate-pulse" />
                           We Have A Winner!
                         </CardTitle>
@@ -519,7 +630,7 @@ export function LotteryApp() {
                 <CardHeader className="pb-4 border-b border-neutral-800 flex flex-row items-center justify-between">
                   <div>
                     <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
-                       <History className="w-5 h-5 text-purple-400" />
+                       <History className="w-5 h-5 text-blue-400" />
                        Recent Winners
                     </CardTitle>
                     <CardDescription className="text-neutral-400">
