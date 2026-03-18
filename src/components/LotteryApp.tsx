@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, Loader2, Sparkles, MapPin, History, RefreshCw } from "lucide-react";
+import { Trophy, Loader2, Sparkles, MapPin, History, RefreshCw, Download } from "lucide-react";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -42,6 +42,7 @@ export function LotteryApp() {
 
   const [activeToken, setActiveToken] = useState("");
   const [tempToken, setTempToken] = useState("");
+  const [tickerName, setTickerName] = useState("");
 
   const availableData = lotteryData.filter((item) => {
      return !prizeHistory.some(w => 
@@ -85,6 +86,38 @@ export function LotteryApp() {
     const newHistory = [winObj, ...prizeHistory];
     setPrizeHistory(newHistory);
     sessionStorage.setItem("lotteryWinners", JSON.stringify(newHistory));
+  };
+
+  const exportWinners = () => {
+    if (prizeHistory.length === 0) return;
+
+    const allKeys = new Set<string>();
+    prizeHistory.forEach(winner => {
+      Object.keys(winner).forEach(k => {
+        if (k !== '_uid') allKeys.add(k);
+      });
+    });
+    const headers = Array.from(allKeys);
+
+    let csv = headers.map(h => `"${h}"`).join(",") + "\n";
+    
+    prizeHistory.forEach(winner => {
+      const row = headers.map(h => {
+        let val = winner[h] ?? "";
+        if (typeof val === 'object') val = JSON.stringify(val);
+        return `"${String(val).replace(/"/g, '""')}"`;
+      });
+      csv += row.join(",") + "\n";
+    });
+
+    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }); // Add BOM for Excel UTF-8
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `phitron-winners-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const startSpin = () => {
@@ -168,6 +201,21 @@ export function LotteryApp() {
     if (typeof item === 'string') return item;
     return name || "Unknown Participant";
   };
+
+  useEffect(() => {
+    let interval: any;
+    if (isSpinning) {
+      interval = setInterval(() => {
+        if (availableData.length > 0) {
+          const randomItem = availableData[Math.floor(Math.random() * availableData.length)];
+          setTickerName(getDisplayName(randomItem));
+        }
+      }, 70); // Fast interval for suspense
+    } else {
+      setTickerName("");
+    }
+    return () => clearInterval(interval);
+  }, [isSpinning, availableData]);
   
   const getSecondaryLabel = (item: any) => {
     if (!item || typeof item === 'string') return "";
@@ -286,23 +334,50 @@ export function LotteryApp() {
                  animate={{ scale: 1, opacity: 1 }}
                  className="text-center mb-8"
               >
-                <h1 className="text-4xl lg:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500 mb-2 drop-shadow-sm">
-                  The Fortune Wheel
+                <h1 className="text-4xl lg:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500 mb-2 drop-shadow-sm text-center">
+                  Phitron Wheel of Salami
                 </h1>
                 <p className="text-neutral-400 text-lg">
                   {lotteryData.length} participants ready to win
                 </p>
               </motion.div>
 
+              {/* FAST TICKER - Shows random names rapidly while spinning to build suspense */}
+              <div className="h-16 mb-6 flex flex-col items-center justify-center w-full max-w-sm rounded-2xl bg-neutral-950/80 border border-neutral-800 shadow-[inset_0_2px_15px_rgba(0,0,0,0.8)] overflow-hidden relative">
+                {isSpinning && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-pink-500/10 to-transparent animate-pulse pointer-events-none"></div>
+                )}
+                
+                {isSpinning ? (
+                  <span className="text-2xl font-black text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.8)] tracking-wider truncate px-6 w-full text-center">
+                    {tickerName || "..."}
+                  </span>
+                ) : (
+                  <span className="text-sm border border-neutral-800 text-neutral-400 uppercase tracking-widest font-semibold flex items-center gap-2 bg-neutral-900 px-5 py-2 rounded-full shadow-sm">
+                    <Sparkles className="w-4 h-4 text-pink-500" /> Ready to Roll
+                  </span>
+                )}
+              </div>
+
               {/* WHEEL CONTAINER */}
               <div className="relative w-full max-w-[400px] aspect-square flex items-center justify-center mb-10 overflow-visible">
                 {/* Outer Glow & Border */}
                 <div className="absolute inset-0 rounded-full border-8 border-neutral-800 shadow-[0_0_50px_rgba(219,39,119,0.15)] bg-neutral-950 z-0"></div>
                 
-                {/* Pointer / Marker (Top) */}
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
-                  <div className="w-8 h-8 bg-neutral-100 rounded-sm shadow-lg border border-neutral-300"></div>
-                  <div className="w-0 h-0 border-l-[16px] border-r-[16px] border-t-[20px] border-l-transparent border-r-transparent border-t-neutral-100 -mt-2"></div>
+                {/* Sharp SVG Pointer / Marker (Top) */}
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-30 drop-shadow-[0_6px_10px_rgba(0,0,0,0.8)]">
+                  <svg width="44" height="60" viewBox="0 0 44 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="origin-top relative z-10">
+                    {/* Main sharp triangle pointer */}
+                    <path d="M22 58L4 4H40L22 58Z" fill="url(#pointerGradient)" stroke="#27272a" strokeWidth="2" strokeLinejoin="round"/>
+                    {/* Inner glowing dot */}
+                    <circle cx="22" cy="16" r="6" fill="#f43f5e" stroke="#fff" strokeWidth="2" />
+                    <defs>
+                      <linearGradient id="pointerGradient" x1="22" y1="0" x2="22" y2="60" gradientUnits="userSpaceOnUse">
+                        <stop stopColor="#ffffff" />
+                        <stop offset="1" stopColor="#d4d4d8" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
                 </div>
 
                 {/* The Rotating Wheel */}
@@ -451,8 +526,19 @@ export function LotteryApp() {
                       Saved to session
                     </CardDescription>
                   </div>
-                  <div className="bg-neutral-800 text-neutral-300 font-bold px-3 py-1 rounded-full text-xs">
-                    {prizeHistory.length}
+                  <div className="flex items-center gap-2">
+                    <div className="bg-neutral-800 text-neutral-300 font-bold px-3 py-1 rounded-full text-xs">
+                      {prizeHistory.length}
+                    </div>
+                    {prizeHistory.length > 0 && (
+                      <button
+                        onClick={exportWinners}
+                        className="p-1.5 bg-neutral-800 text-neutral-300 hover:text-white hover:bg-neutral-700 border border-neutral-700 hover:border-neutral-500 rounded-md transition-colors"
+                        title="Export Winners to CSV"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="p-0 overflow-y-auto w-full custom-scrollbar flex-1 relative">
